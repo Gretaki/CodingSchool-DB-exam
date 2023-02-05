@@ -52,6 +52,7 @@ public class QuestionRepository{
 
     public void delete(Question question) {
         session.getTransaction().begin();
+        question.setExam(null);
         session.remove(question);
         session.getTransaction().commit();
     }

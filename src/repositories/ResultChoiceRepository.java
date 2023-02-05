@@ -1,11 +1,10 @@
 package repositories;
 
-import entities.Answer;
-import entities.Question;
 import entities.Result;
 import entities.ResultChoice;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.Root;
 import org.hibernate.Session;
 
@@ -31,5 +30,16 @@ public class ResultChoiceRepository {
         Root<ResultChoice> root = cbQuery.from(ResultChoice.class);
         cbQuery.select(root).where(cb.equal(root.get("result"), result));
         return session.createQuery(cbQuery).getResultList();
+    }
+
+    public List<ResultChoice> getResultChoiceJoinedWithResult(){
+        CriteriaBuilder cb = session.getCriteriaBuilder();
+
+        CriteriaQuery<ResultChoice> cbQuery = cb.createQuery(ResultChoice.class);
+        Root<ResultChoice> root = cbQuery.from( ResultChoice.class );
+        Join<Object, Object> productsJoin = root.join( "result" );
+//        cbQuery.multiselect(root.);
+        List<ResultChoice> result = session.createQuery(cbQuery).getResultList();
+        return result;
     }
 }

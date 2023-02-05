@@ -62,6 +62,7 @@ public class Main {
                     [7] - delete exam
                     [8] - delete question of exam
                     [9] - delete answer of question
+                    [10] - statistics
                     [x] - exit
                     """);
             String inputOption = sc.nextLine().toLowerCase();
@@ -69,23 +70,74 @@ public class Main {
                 case "1" -> createExam(sc, session);
                 case "2" -> createQuestion(sc, session);
                 case "3" -> createAnswer(sc, session);
-
                 case "4" -> editExam(sc, session);
                 case "5" -> editQuestion(sc, session);
                 case "6" -> editAnswer(sc, session);
-
                 case "7" -> deleteExam(sc, session);
                 case "8" -> deleteQuestion(sc, session);
                 case "9" -> deleteAnswer(sc, session);
-
+                case "10" -> showStatistics(sc, session);
                 case "x" -> runProgramAsAdmin = false;
                 default -> Printer.invalidArgumentMessage();
             }
         }
     }
 
+    private static void showStatistics(Scanner sc, Session session) {
+        // 6.2.Teisingų atsakymų vidurkis egzamine (pvz: vidutiniškai duomenų bazių egzamine teisingai atsakoma į 6.5 klausimų iš 10)
+        // 6.3.Kiek skirtingų atsakymo variantų pasirinkta prie kiekvieno iš klausimų (Pvz: [ A ] - 13 kartų, [ B ] - 5 kartus, [ C ] - 1 kartą)
+        boolean run = true;
+
+        while (run) {
+            System.out.print("""
+                    Options:
+                    [1] - How many people participated in every exam
+                    [2] - What is the average of correct answers in every exam
+                    [x] - exit
+                    """);
+            String inputOption = sc.nextLine().toLowerCase();
+            switch (inputOption) {
+                case "1" -> getPeopleByExam(session);
+                case "2" -> a(session);
+                case "x" -> run = false;
+                default -> Printer.invalidArgumentMessage();
+            }
+        }
+    }
+
+    private static void getPeopleByExam(Session session) {
+        ResultRepository resultRepository = new ResultRepository(session);
+        ExamRepository examRepository = new ExamRepository(session);
+        examRepository.a();
+
+        List<Object[]> results = resultRepository.getResultGroupedByParticipant();
+        System.out.println(" ExamId         | NoOfParticipants");
+        results.forEach(result -> {
+            Exam exam = (Exam) result[0];
+            System.out.printf("%3d. %-10s | %s\n", exam.getId(), exam.getName(), result[1]);
+        });
+    }
+
+    private static void a(Session session) {
+        ResultChoiceRepository resultChoiceRepository = new ResultChoiceRepository(session);
+        List<ResultChoice> results = resultChoiceRepository.getResultChoiceJoinedWithResult();
+//        System.out.println(" ExamId         | NoOfParticipants");
+        results.forEach(result -> {
+            System.out.printf("%3d. %-10s | %s\n", result.getId(), result.getResult(), result.getQuestion(), result.getAnswer());
+        });
+    }
     private static void deleteExam(Scanner sc, Session session) {
         Exam exam = chooseExam(sc, session);
+        QuestionRepository questionRepository = new QuestionRepository(session);
+        List<Question> questions = questionRepository.getByExam(exam);
+
+        questions.forEach(question -> {
+            AnswerRepository answerRepository = new AnswerRepository(session);
+            List<Answer> answers = answerRepository.getByQuestion(question);
+            answers.forEach(answerRepository::delete);
+            questionRepository.delete(question);
+        });
+
         ExamRepository examRepository = new ExamRepository(session);
         examRepository.delete(exam);
         System.out.println("Exam deleted successfully");
@@ -94,6 +146,11 @@ public class Main {
     private static void deleteQuestion(Scanner sc, Session session) {
         Exam exam = chooseExam(sc, session);
         Question question = chooseQuestion(sc, session, exam);
+
+        AnswerRepository answerRepository = new AnswerRepository(session);
+        List<Answer> answers = answerRepository.getByQuestion(question);
+        answers.forEach(answerRepository::delete);
+
         QuestionRepository questionRepository = new QuestionRepository(session);
         questionRepository.delete(question);
         System.out.println("Question deleted successfully");
