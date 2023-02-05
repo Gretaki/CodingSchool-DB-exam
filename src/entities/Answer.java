@@ -22,6 +22,7 @@ public class Answer {
     private String answer;
 
     @Column(name = "answer_is_correct", nullable = false)
+    // TODO default padaryt
     private boolean answerIsCorrect;
 
     @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
@@ -29,6 +30,12 @@ public class Answer {
     private Question question;
 
     public Answer() {
+    }
+
+    public Answer(String answer, boolean answerIsCorrect, Question question) {
+        this.answer = answer;
+        this.answerIsCorrect = answerIsCorrect;
+        this.question = question;
     }
 
     public long getId() {
@@ -61,5 +68,15 @@ public class Answer {
 
     public void setQuestion(Question question) {
         this.question = question;
+    }
+
+    @Override
+    public String toString() {
+        return "Answer{" +
+                "id=" + id +
+                ", answer='" + answer + '\'' +
+                ", answerIsCorrect=" + answerIsCorrect +
+                ", question=" + question +
+                '}';
     }
 }

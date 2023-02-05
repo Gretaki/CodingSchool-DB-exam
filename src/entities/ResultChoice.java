@@ -36,6 +36,12 @@ public class ResultChoice {
     public ResultChoice() {
     }
 
+    public ResultChoice(Result result, Question question, Answer answer) {
+        this.result = result;
+        this.question = question;
+        this.answer = answer;
+    }
+
     public long getId() {
         return id;
     }
@@ -66,5 +72,10 @@ public class ResultChoice {
 
     public void setAnswer(Answer answer) {
         this.answer = answer;
+    }
+
+    @Override
+    public String toString() {
+        return "Question: " + question + ", your answer=" + answer + ".";
     }
 }

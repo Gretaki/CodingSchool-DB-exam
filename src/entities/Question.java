@@ -28,6 +28,11 @@ public class Question {
     public Question() {
     }
 
+    public Question(String question, Exam exam) {
+        this.question = question;
+        this.exam = exam;
+    }
+
     public long getId() {
         return id;
     }
@@ -50,5 +55,14 @@ public class Question {
 
     public void setExam(Exam exam) {
         this.exam = exam;
+    }
+
+    @Override
+    public String toString() {
+        return "Question{" +
+                "id=" + id +
+                ", question='" + question + '\'' +
+                ", exam=" + exam +
+                '}';
     }
 }
