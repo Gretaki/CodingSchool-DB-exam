@@ -1,6 +1,5 @@
 package repositories;
 
-import entities.Answer;
 import entities.Exam;
 import entities.Question;
 import jakarta.persistence.criteria.CriteriaBuilder;
@@ -10,7 +9,7 @@ import org.hibernate.Session;
 
 import java.util.List;
 
-public class QuestionRepository{
+public class QuestionRepository {
     private final Session session;
 
     public QuestionRepository(Session session) {
@@ -29,7 +28,7 @@ public class QuestionRepository{
         return session.get(Question.class, id);
     }
 
-    public List<Question> getByExam(Exam exam){
+    public List<Question> getByExam(Exam exam) {
         CriteriaBuilder cb = session.getCriteriaBuilder();
         CriteriaQuery<Question> cbQuery = cb.createQuery(Question.class);
         Root<Question> root = cbQuery.from(Question.class);

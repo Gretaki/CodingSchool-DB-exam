@@ -4,7 +4,6 @@ import entities.Result;
 import entities.ResultChoice;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
-import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.Root;
 import org.hibernate.Session;
 
@@ -17,11 +16,11 @@ public class ResultChoiceRepository {
         this.session = session;
     }
 
-    public void add(ResultChoice resultChoice) {
+    public ResultChoice add(ResultChoice resultChoice) {
         session.getTransaction().begin();
         session.persist(resultChoice);
         session.getTransaction().commit();
-        System.out.println("answer saved");
+        return resultChoice;
     }
 
     public List<ResultChoice> getByResult(Result result) {
@@ -32,14 +31,15 @@ public class ResultChoiceRepository {
         return session.createQuery(cbQuery).getResultList();
     }
 
-    public List<ResultChoice> getResultChoiceJoinedWithResult(){
-        CriteriaBuilder cb = session.getCriteriaBuilder();
-
-        CriteriaQuery<ResultChoice> cbQuery = cb.createQuery(ResultChoice.class);
-        Root<ResultChoice> root = cbQuery.from( ResultChoice.class );
-        Join<Object, Object> productsJoin = root.join( "result" );
-//        cbQuery.multiselect(root.);
-        List<ResultChoice> result = session.createQuery(cbQuery).getResultList();
-        return result;
+    public List<Object[]> getAnswerChoicesByQuestion() {
+        String query = "select  q.id, q.question,\n" +
+                "count(case when (a.id - 3 * (q.id - 1) = 1) then 1 end ) as A,\n" +
+                "count(case when (a.id - 3 * (q.id - 1) = 2) then 1 end ) as B,\n" +
+                "count(case when (a.id - 3 * (q.id - 1) = 3) then 1 end ) as C \n" +
+                "from ResultChoice rc\n" +
+                "join rc.question q\n" +
+                "join rc.answer a\n" +
+                "group by q.id, q.question\n";
+        return session.createQuery(query, Object[].class).list();
     }
 }

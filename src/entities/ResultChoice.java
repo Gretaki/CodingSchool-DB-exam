@@ -36,6 +36,7 @@ public class ResultChoice {
     public ResultChoice() {
     }
 
+
     public ResultChoice(Result result, Question question, Answer answer) {
         this.result = result;
         this.question = question;
@@ -76,6 +77,11 @@ public class ResultChoice {
 
     @Override
     public String toString() {
-        return "Question: " + question + ", your answer=" + answer + ".";
+        return "ResultChoice{" +
+                "id=" + id +
+                ", result=" + result +
+                ", question=" + question +
+                ", answer=" + answer +
+                '}';
     }
 }

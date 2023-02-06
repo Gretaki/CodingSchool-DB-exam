@@ -22,8 +22,7 @@ public class Answer {
     private String answer;
 
     @Column(name = "answer_is_correct", nullable = false)
-    // TODO default padaryt
-    private boolean answerIsCorrect;
+    private boolean answerIsCorrect = false;
 
     @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinColumn(name = "question_id", nullable = false)
@@ -72,11 +71,6 @@ public class Answer {
 
     @Override
     public String toString() {
-        return "Answer{" +
-                "id=" + id +
-                ", answer='" + answer + '\'' +
-                ", answerIsCorrect=" + answerIsCorrect +
-                ", question=" + question +
-                '}';
+        return answer;
     }
 }

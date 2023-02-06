@@ -13,58 +13,44 @@ import repositories.QuestionRepository;
 import repositories.ResultChoiceRepository;
 import repositories.ResultRepository;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Scanner;
 
 public class Main {
     public static void main(String[] args) {
         SessionFactoryMaker.getFactory();
+        Session session = SessionFactoryMaker.getFactory().openSession();
         Scanner sc = new Scanner(System.in);
 
-        runProgram(sc);
+        runProgram(sc, session);
 
         sc.close();
     }
 
-    private static void runProgram(Scanner sc) {
+    public static Session runProgram(Scanner sc, Session session) {
         Printer.programStartGreeting();
 
         boolean runProgram = true;
         while (runProgram) {
             Printer.userOptions();
-
             String inputOption = sc.nextLine().toLowerCase();
             switch (inputOption) {
-                case "1" -> participateInExam(sc);
-                case "2" -> administrateExams(sc);
+                case "1" -> participateInExam(sc, session);
+                case "2" -> administrateExams(sc, session);
                 case "x" -> runProgram = false;
                 default -> Printer.invalidArgumentMessage();
             }
         }
+        return session;
     }
 
-    private static void administrateExams(Scanner sc) {
-        Session session = SessionFactoryMaker.getFactory().openSession();
-
-        System.out.println("Signed in as an ADMIN.");
+    private static void administrateExams(Scanner sc, Session session) {
+        Printer.signedAsAdmin();
 
         boolean runProgramAsAdmin = true;
-
         while (runProgramAsAdmin) {
-            System.out.print("""
-                    Options:
-                    [1] - add new exam
-                    [2] - add new question to exam
-                    [3] - add new answer to question
-                    [4] - edit exam
-                    [5] - edit question of exam
-                    [6] - edit answer of question
-                    [7] - delete exam
-                    [8] - delete question of exam
-                    [9] - delete answer of question
-                    [10] - statistics
-                    [x] - exit
-                    """);
+            Printer.adminOptions();
             String inputOption = sc.nextLine().toLowerCase();
             switch (inputOption) {
                 case "1" -> createExam(sc, session);
@@ -84,21 +70,14 @@ public class Main {
     }
 
     private static void showStatistics(Scanner sc, Session session) {
-        // 6.2.Teisingų atsakymų vidurkis egzamine (pvz: vidutiniškai duomenų bazių egzamine teisingai atsakoma į 6.5 klausimų iš 10)
-        // 6.3.Kiek skirtingų atsakymo variantų pasirinkta prie kiekvieno iš klausimų (Pvz: [ A ] - 13 kartų, [ B ] - 5 kartus, [ C ] - 1 kartą)
         boolean run = true;
-
         while (run) {
-            System.out.print("""
-                    Options:
-                    [1] - How many people participated in every exam
-                    [2] - What is the average of correct answers in every exam
-                    [x] - exit
-                    """);
+            Printer.statisticsOptions();
             String inputOption = sc.nextLine().toLowerCase();
             switch (inputOption) {
                 case "1" -> getPeopleByExam(session);
-                case "2" -> a(session);
+                case "2" -> getResultChoiceByParticipantByExam(session);
+                case "3" -> getAnswerChoicesByQuestion(session);
                 case "x" -> run = false;
                 default -> Printer.invalidArgumentMessage();
             }
@@ -106,26 +85,38 @@ public class Main {
     }
 
     private static void getPeopleByExam(Session session) {
-        ResultRepository resultRepository = new ResultRepository(session);
         ExamRepository examRepository = new ExamRepository(session);
-        examRepository.a();
+        List<Object[]> peopleByExam = examRepository.getPeopleByExam();
 
-        List<Object[]> results = resultRepository.getResultGroupedByParticipant();
-        System.out.println(" ExamId         | NoOfParticipants");
-        results.forEach(result -> {
-            Exam exam = (Exam) result[0];
-            System.out.printf("%3d. %-10s | %s\n", exam.getId(), exam.getName(), result[1]);
+        System.out.println("  Exam                    | NoOfParticipants");
+        peopleByExam.forEach(value -> {
+            System.out.printf("%3d. %-20s | %s\n", (long) value[0], value[1], value[2]);
         });
     }
 
-    private static void a(Session session) {
+    private static void getResultChoiceByParticipantByExam(Session session) {
+        ExamRepository examRepository = new ExamRepository(session);
+        List<Object[]> results = examRepository.getResultChoiceByParticipantByExam();
+
+        System.out.println("  Exam                    | AvgOfCorrectAnswersInExam");
+        results.forEach(value -> {
+            double correct = ((BigDecimal) value[3]).doubleValue() / ((Long) value[2]);
+            double total = ((Long) value[4]).doubleValue() / ((Long) value[2]);
+            String correctString = String.format("%.2f / %.0f", correct, total);
+            System.out.printf("%3d. %-20s | %s\n", (long) value[0], value[1], correctString);
+        });
+    }
+
+    private static void getAnswerChoicesByQuestion(Session session) {
         ResultChoiceRepository resultChoiceRepository = new ResultChoiceRepository(session);
-        List<ResultChoice> results = resultChoiceRepository.getResultChoiceJoinedWithResult();
-//        System.out.println(" ExamId         | NoOfParticipants");
-        results.forEach(result -> {
-            System.out.printf("%3d. %-10s | %s\n", result.getId(), result.getResult(), result.getQuestion(), result.getAnswer());
+        List<Object[]> results = resultChoiceRepository.getAnswerChoicesByQuestion();
+
+        System.out.println("  Exam                                             |  A  |  B  |  C  ");
+        results.forEach(value -> {
+            System.out.printf("%3d. %-45s | %3d | %3d | %3d\n", (long) value[0], value[1], (long) value[2], (long) value[3], (long) value[4]);
         });
     }
+
     private static void deleteExam(Scanner sc, Session session) {
         Exam exam = chooseExam(sc, session);
         QuestionRepository questionRepository = new QuestionRepository(session);
@@ -180,12 +171,7 @@ public class Main {
 
         boolean run = true;
         while (run) {
-            System.out.print("""
-                    Options:
-                    [1] - edit question
-                    [2] - edit question exam
-                    [x] - exit
-                    """);
+            Printer.editQuestionOptions();
             String inputOption = sc.nextLine().toLowerCase();
             String inputQuestionName = "";
             Exam updatedExam = null;
@@ -211,13 +197,7 @@ public class Main {
 
         boolean run = true;
         while (run) {
-            System.out.print("""
-                    Options:
-                    [1] - edit answer
-                    [2] - edit answer correctness
-                    [3] - edit answer question
-                    [x] - exit
-                    """);
+            Printer.editAnswerOptions();
             String inputOption = sc.nextLine().toLowerCase();
             String inputAnswerName = "";
             boolean updatedAnswerCorrectness = false;
@@ -230,14 +210,12 @@ public class Main {
                 case "2" -> {
                     System.out.println("Enter updates correctness: ");
                     String inputAnswerCorrectness = sc.nextLine().toLowerCase().trim();
-                    // TODO man rodos sitas neveikia
                     updatedAnswerCorrectness = inputAnswerCorrectness.equals("y") || inputAnswerCorrectness.equals("yes") | inputAnswerCorrectness.equals("true") | inputAnswerCorrectness.equals("t");
                 }
                 case "3" -> updatedQuestion = chooseQuestion(sc, session, exam);
                 case "x" -> run = false;
                 default -> Printer.invalidArgumentMessage();
             }
-
             AnswerRepository answerRepository = new AnswerRepository(session);
             answerRepository.update(answer, inputAnswerName, updatedAnswerCorrectness, updatedQuestion);
         }
@@ -248,16 +226,10 @@ public class Main {
         String inputExamName = sc.nextLine();
         ExamRepository examRepository = new ExamRepository(session);
         Exam exam = examRepository.add(new Exam(inputExamName));
-        System.out.println("exam saved: " + exam.getId() + " " + exam.getName());
 
         boolean runAddingQuestions = true;
-
         while (runAddingQuestions) {
-            System.out.print("""
-                    Options:
-                    [1] - add question
-                    [x] - exit
-                    """);
+            Printer.createExamOptions();
             String inputOption = sc.nextLine().toLowerCase();
             switch (inputOption) {
                 case "1" -> createQuestionForExam(sc, session, exam);
@@ -275,7 +247,7 @@ public class Main {
     private static void createAnswer(Scanner sc, Session session) {
         Exam exam = chooseExam(sc, session);
         Question question = chooseQuestion(sc, session, exam);
-        createAnswerForQuestion(sc, session, exam, question);
+        createAnswerForQuestion(sc, session, question);
     }
 
     private static void createQuestionForExam(Scanner sc, Session session, Exam exam) {
@@ -283,27 +255,20 @@ public class Main {
         String inputQuestion = sc.nextLine();
         QuestionRepository questionRepository = new QuestionRepository(session);
         Question question = questionRepository.add(new Question(inputQuestion, exam));
-        System.out.println("question saved: " + question.getId() + " " + question.getQuestion() + " " + question.getExam());
 
         boolean runAddingAnswers = true;
-
         while (runAddingAnswers) {
-            System.out.print("""
-                    Options:
-                    [1] - add answer
-                    [x] - exit
-                    """);
+            Printer.createQuestionOptions();
             String inputOption = sc.nextLine().toLowerCase();
             switch (inputOption) {
-                case "1" -> createAnswerForQuestion(sc, session, exam, question);
+                case "1" -> createAnswerForQuestion(sc, session, question);
                 case "x" -> runAddingAnswers = false;
                 default -> Printer.invalidArgumentMessage();
             }
         }
     }
 
-    // todo galima sukurti 4 atsakymus ir kelis teisingus. idet validation
-    private static void createAnswerForQuestion(Scanner sc, Session session, Exam exam, Question question) {
+    private static void createAnswerForQuestion(Scanner sc, Session session, Question question) {
         System.out.println("Enter answer: ");
         String inputAnswer = sc.nextLine();
         System.out.println("Is answer correct: ");
@@ -311,41 +276,27 @@ public class Main {
         boolean answerIsCorrect = inputAnswerCorrectness.equals("y") || inputAnswerCorrectness.equals("yes") | inputAnswerCorrectness.equals("true") | inputAnswerCorrectness.equals("t");
 
         AnswerRepository answerRepository = new AnswerRepository(session);
-        Answer answer = answerRepository.add(new Answer(inputAnswer, answerIsCorrect, question));
-        System.out.println("answer saved: " + answer.getId() + " " + answer.getQuestion() + " " + answer.getAnswer());
+        answerRepository.add(new Answer(inputAnswer, answerIsCorrect, question));
     }
 
-    private static void participateInExam(Scanner sc) {
-        Session session = SessionFactoryMaker.getFactory().openSession();
+    private static void participateInExam(Scanner sc, Session session) {
         ResultRepository resultRepository = new ResultRepository(session);
         ResultChoiceRepository resultChoiceRepository = new ResultChoiceRepository(session);
 
-        // create participant
         Participant participant = enterName(sc, session);
-
-        // choose exam
         Exam exam = chooseExam(sc, session);
-
-        // result status change to in progress
         Result result = createResult(resultRepository, exam, participant);
-
         answerQuestions(sc, resultChoiceRepository, session, exam, result);
 
-        // results
         showResults(resultChoiceRepository, result);
-
         resultRepository.makeExamStatusCompleted(result);
-
-        System.out.println("Congrats, your results are saved");
     }
 
     private static Participant enterName(Scanner sc, Session session) {
-        // todo validate, if the name already exist, maybe show solved exams
         System.out.println("Enter your name: ");
-        String inputName = sc.nextLine().toLowerCase();
+        String inputName = sc.nextLine();
         ParticipantRepository participantRepository = new ParticipantRepository(session);
-        participantRepository.add(new Participant(inputName));
-        return participantRepository.getByName(inputName);
+        return participantRepository.add(new Participant(inputName));
     }
 
     private static Result createResult(ResultRepository resultRepository, Exam exam, Participant participant) {
@@ -383,7 +334,6 @@ public class Main {
 
             System.out.print("Your answer: ");
             String inputAnswer = sc.nextLine().toLowerCase().trim();
-            System.out.println("chosen answer: " + inputAnswer);
             int inputAnswerIndex = Integer.parseInt(inputAnswer) - 1;
 
             resultChoiceRepository.add(new ResultChoice(result, question, answers.get(inputAnswerIndex)));
@@ -395,10 +345,7 @@ public class Main {
         List<Exam> exams = examRepository.getAll();
         Printer.examList(exams);
         String inputExam = sc.nextLine().toLowerCase();
-        Exam exam = examRepository.getById(Long.parseLong(inputExam));
-        // TODO this is bad when admin
-        Printer.exam(exam);
-        return exam;
+        return examRepository.getById(Long.parseLong(inputExam));
     }
 
     private static Question chooseQuestion(Scanner sc, Session session, Exam exam) {

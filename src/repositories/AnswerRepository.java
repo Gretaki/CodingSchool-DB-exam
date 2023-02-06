@@ -1,7 +1,6 @@
 package repositories;
 
 import entities.Answer;
-import entities.Exam;
 import entities.Question;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
@@ -21,7 +20,6 @@ public class AnswerRepository {
         session.getTransaction().begin();
         session.persist(answer);
         session.getTransaction().commit();
-        System.out.println("answer saved");
         return answer;
     }
 

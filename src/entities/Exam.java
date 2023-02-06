@@ -1,12 +1,14 @@
 package entities;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
-import org.hibernate.Session;
 
 import java.util.List;
 
@@ -20,15 +22,16 @@ public class Exam {
     @Column(nullable = false)
     private String name;
 
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "exam", fetch = FetchType.EAGER)
+    private List<Question> questions;
+
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "exam", fetch = FetchType.EAGER)
+    private List<Result> results;
+
     public Exam() {
     }
 
     public Exam(String name) {
-        this.name = name;
-    }
-
-    public Exam(long id, String name) {
-        this.id = id;
         this.name = name;
     }
 
@@ -48,11 +51,26 @@ public class Exam {
         this.name = name;
     }
 
+    public List<Question> getQuestions() {
+        return questions;
+    }
+
+    public void setQuestions(List<Question> questions) {
+        this.questions = questions;
+    }
+
+    public List<Result> getResults() {
+        return results;
+    }
+
+    public void setResults(List<Result> results) {
+        this.results = results;
+    }
+
     @Override
     public String toString() {
-        return "Exam{" +
+        return "Exam: " +
                 "id=" + id +
-                ", name='" + name + '\'' +
-                '}';
+                ", name='" + name + '\'';
     }
 }

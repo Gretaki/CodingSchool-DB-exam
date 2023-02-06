@@ -9,8 +9,11 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
+
+import java.util.List;
 
 @Entity
 @Table(
@@ -35,6 +38,9 @@ public class Result {
     @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinColumn(name = "participant_id", nullable = false)
     private Participant participant;
+
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "result", fetch = FetchType.EAGER)
+    private List<ResultChoice> resultChoices;
 
     public Result() {
     }
@@ -75,5 +81,13 @@ public class Result {
 
     public void setParticipant(Participant participant) {
         this.participant = participant;
+    }
+
+    public List<ResultChoice> getResultChoices() {
+        return resultChoices;
+    }
+
+    public void setResultChoices(List<ResultChoice> resultChoices) {
+        this.resultChoices = resultChoices;
     }
 }
