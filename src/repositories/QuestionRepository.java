@@ -20,7 +20,6 @@ public class QuestionRepository {
         session.getTransaction().begin();
         session.persist(question);
         session.getTransaction().commit();
-        System.out.println("question saved");
         return question;
     }
 

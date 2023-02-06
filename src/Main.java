@@ -326,10 +326,10 @@ public class Main {
         List<Question> questions = questionRepository.getByExam(exam);
         for (int i = 0; i < questions.size(); i++) {
             Question question = questions.get(i);
-            System.out.printf("%3d. %s :\n", i + 1, question);
+            System.out.printf("%3d. %s :\n", i + 1, question.getQuestion());
             List<Answer> answers = answerRepository.getByQuestion(question);
             for (int j = 0; j < answers.size(); j++) {
-                System.out.printf("  %3d. %s\n", j + 1, answers.get(j));
+                System.out.printf("  %3d. %s\n", j + 1, answers.get(j).getAnswer());
             }
 
             System.out.print("Your answer: ");

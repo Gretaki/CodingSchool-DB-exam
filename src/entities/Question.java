@@ -73,6 +73,8 @@ public class Question {
 
     @Override
     public String toString() {
-        return question;
+        return "Question: " +
+                "id=" + id +
+                ", question='" + question;
     }
 }

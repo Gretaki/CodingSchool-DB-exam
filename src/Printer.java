@@ -72,8 +72,8 @@ public class Printer {
     public static void editQuestionOptions() {
         System.out.print("""
                 Options:
-                [1] - edit question
-                [2] - edit question exam
+                [1] - edit question text
+                [2] - move question to another exam
                 [x] - exit
                 """);
     }
@@ -81,9 +81,9 @@ public class Printer {
     public static void editAnswerOptions() {
         System.out.print("""
                 Options:
-                [1] - edit answer
+                [1] - edit answer text
                 [2] - edit answer correctness
-                [3] - edit answer question
+                [3] - move answer to another question
                 [x] - exit
                 """);
     }

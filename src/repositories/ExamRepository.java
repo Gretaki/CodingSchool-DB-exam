@@ -16,7 +16,6 @@ public class ExamRepository {
         session.getTransaction().begin();
         session.persist(exam);
         session.getTransaction().commit();
-        System.out.println("exam saved");
         return exam;
     }
 
